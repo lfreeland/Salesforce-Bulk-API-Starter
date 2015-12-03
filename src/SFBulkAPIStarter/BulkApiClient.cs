@@ -56,7 +56,7 @@ namespace SFBulkAPIStarter
                                           createJobRequest.ContentTypeString,
                                           externalField);
 
-            String createJobUrl = "https://" + _sfService.Pod + "-api.salesforce.com/services/async/31.0/job";
+            String createJobUrl = "https://" + _sfService.Pod + ".salesforce.com/services/async/31.0/job";
 
             String resultXML = invokeRestAPI(createJobUrl, jobRequestXML); 
 
@@ -87,7 +87,7 @@ namespace SFBulkAPIStarter
         }
 
         public Batch CreateBatch(CreateBatchRequest createBatchRequest){
-            String requestUrl = "https://" + _sfService.Pod + "-api.salesforce.com/services/async/31.0/job/" + createBatchRequest.JobId + "/batch";
+            String requestUrl = "https://" + _sfService.Pod + ".salesforce.com/services/async/31.0/job/" + createBatchRequest.JobId + "/batch";
 
             String requestXML = createBatchRequest.BatchContents;
 
@@ -105,7 +105,7 @@ namespace SFBulkAPIStarter
 
         public Batch GetBatch(string jobId, string batchId)
         {
-            String requestUrl = "https://" + _sfService.Pod + "-api.salesforce.com/services/async/31.0/job/" + jobId + "/batch/" + batchId;
+            String requestUrl = "https://" + _sfService.Pod + ".salesforce.com/services/async/31.0/job/" + jobId + "/batch/" + batchId;
 
             String resultXML = invokeRestAPI(requestUrl);
 
@@ -113,7 +113,7 @@ namespace SFBulkAPIStarter
         }
 
         public List<Batch> GetBatches(String jobId){
-            String requestUrl = "https://" + _sfService.Pod + "-api.salesforce.com/services/async/31.0/job/" + jobId + "/batch/";
+            String requestUrl = "https://" + _sfService.Pod + ".salesforce.com/services/async/31.0/job/" + jobId + "/batch/";
 
             String resultXML = invokeRestAPI(requestUrl);
 
@@ -122,7 +122,7 @@ namespace SFBulkAPIStarter
 
         public String GetBatchRequest(String jobId, String batchId)
         {
-            String requestUrl = "https://" + _sfService.Pod + "-api.salesforce.com/services/async/31.0/job/" + jobId + "/batch/" + batchId + "/request";
+            String requestUrl = "https://" + _sfService.Pod + ".salesforce.com/services/async/31.0/job/" + jobId + "/batch/" + batchId + "/request";
 
             String resultXML = invokeRestAPI(requestUrl);
 
@@ -131,7 +131,7 @@ namespace SFBulkAPIStarter
 
         public String GetBatchResults(String jobId, String batchId)
         {
-            String requestUrl = "https://" + _sfService.Pod + "-api.salesforce.com/services/async/31.0/job/" + jobId + "/batch/" + batchId + "/result";
+            String requestUrl = "https://" + _sfService.Pod + ".salesforce.com/services/async/31.0/job/" + jobId + "/batch/" + batchId + "/result";
 
             String resultXML = invokeRestAPI(requestUrl);
 
@@ -158,7 +158,7 @@ namespace SFBulkAPIStarter
 
         public String GetBatchResult(String jobId, String batchId, String resultId)
         {
-            String requestUrl = "https://" + _sfService.Pod + "-api.salesforce.com/services/async/31.0/job/" + jobId + "/batch/" + batchId + "/result/" + resultId;
+            String requestUrl = "https://" + _sfService.Pod + ".salesforce.com/services/async/31.0/job/" + jobId + "/batch/" + batchId + "/result/" + resultId;
 
             String resultXML = invokeRestAPI(requestUrl);
 
@@ -167,7 +167,7 @@ namespace SFBulkAPIStarter
 
         private String buildSpecificJobUrl(String jobId)
         {
-            return "https://" + _sfService.Pod + "-api.salesforce.com/services/async/31.0/job/" + jobId;
+            return "https://" + _sfService.Pod + ".salesforce.com/services/async/31.0/job/" + jobId;
         }
 
         private void Login()

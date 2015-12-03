@@ -12,8 +12,15 @@ namespace SFBulkAPIStarter.SFEnterprise
         {
             get
             {
+                String podPart = "";
+                int i = 0;
                 String[] urlParts = this.Url.Split(new char[] { '.' });
-                String podPart = urlParts[0];
+                while (!urlParts[i].Contains("salesforce"))
+                {
+                    podPart += urlParts[i] + ".";
+                    i++;
+                }
+                podPart = podPart.Substring(0, podPart.Length - 1);
                 String pod = podPart.ToLower().Replace("https://", String.Empty);
 
                 return pod;
