@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -85,6 +86,19 @@ namespace SFBulkAPIStarter
             String resultXML = invokeRestAPI(getJobUrl);
 
             return Job.Create(resultXML);
+        }
+
+        public Job GetCompletedJob(String jobId)
+        {
+            Job job = GetJob(jobId);
+
+            while (job.IsDone == false)
+            {
+                Thread.Sleep(2000);
+                job = job = GetJob(jobId);
+            }
+
+            return job;
         }
 
         public Batch CreateAttachmentBatch(CreateAttachmentBatchRequest request)

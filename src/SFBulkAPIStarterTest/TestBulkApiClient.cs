@@ -73,13 +73,7 @@ namespace SFBulkAPIStarterTest
 
             _apiClient.CloseJob(job.Id);
 
-            job = _apiClient.GetJob(job.Id);
-
-            while (job.IsDone == false)
-            {
-                Thread.Sleep(2000);
-                job = _apiClient.GetJob(job.Id);
-            }
+            job = _apiClient.GetCompletedJob(job.Id);
 
             Assert.IsTrue(job.NumberRecordsFailed == 0);
             Assert.IsTrue(job.NumberRecordsProcessed == 1);
@@ -191,13 +185,7 @@ namespace SFBulkAPIStarterTest
 
             _apiClient.CloseJob(job.Id);
 
-            job = _apiClient.GetJob(job.Id);
-
-            while (job.IsDone == false)
-            {
-                Thread.Sleep(2000);
-                job = _apiClient.GetJob(job.Id);
-            }
+            job = _apiClient.GetCompletedJob(job.Id);
 
             CreateJobRequest queryAccountJobRequest = buildDefaultQueryAccountCreateJobRequest();
             Job queryJob = _apiClient.CreateJob(queryAccountJobRequest);
@@ -210,13 +198,7 @@ namespace SFBulkAPIStarterTest
 
             _apiClient.CloseJob(queryJob.Id);
 
-            queryJob = _apiClient.GetJob(queryJob.Id);
-
-            while (job.IsDone == false)
-            {
-                Thread.Sleep(2000);
-                queryJob = _apiClient.GetJob(queryJob.Id);
-            }
+            queryJob = _apiClient.GetCompletedJob(queryJob.Id);
 
             String batchQueryResultsList = _apiClient.GetBatchResults(queryBatch.JobId, queryBatch.Id);
 
@@ -248,13 +230,7 @@ namespace SFBulkAPIStarterTest
 
             _apiClient.CloseJob(job.Id);
 
-            job = _apiClient.GetJob(job.Id);
-
-            while (job.IsDone == false)
-            {
-                Thread.Sleep(2000);
-                job = _apiClient.GetJob(job.Id);
-            }
+            job = _apiClient.GetCompletedJob(job.Id);
 
             Assert.IsTrue(job.NumberBatchesFailed == 0);
             Assert.IsTrue(job.NumberRecordsProcessed > 0);
@@ -278,13 +254,7 @@ namespace SFBulkAPIStarterTest
 
             _apiClient.CloseJob(job.Id);
 
-            job = _apiClient.GetJob(job.Id);
-
-            while (job.IsDone == false)
-            {
-                Thread.Sleep(2000);
-                job = _apiClient.GetJob(job.Id);
-            }
+            job = _apiClient.GetCompletedJob(job.Id);
 
             // Query the accounts to dynamically retreive the account id to delete
             CreateJobRequest queryAccountJobRequest = buildDefaultQueryAccountCreateJobRequest();
@@ -298,13 +268,7 @@ namespace SFBulkAPIStarterTest
 
             _apiClient.CloseJob(queryJob.Id);
 
-            queryJob = _apiClient.GetJob(queryJob.Id);
-
-            while (queryJob.IsDone == false)
-            {
-                Thread.Sleep(2000);
-                queryJob = _apiClient.GetJob(queryJob.Id);
-            }
+            queryJob = _apiClient.GetCompletedJob(queryJob.Id);
 
             String batchQueryResultsList = _apiClient.GetBatchResults(queryBatch.JobId, queryBatch.Id);
 
@@ -330,17 +294,14 @@ namespace SFBulkAPIStarterTest
 
             _apiClient.CloseJob(deleteJob.Id);
 
-            deleteJob = _apiClient.GetJob(deleteJob.Id);
-
-            while (deleteJob.IsDone == false)
-            {
-                Thread.Sleep(2000);
-                deleteJob = _apiClient.GetJob(deleteJob.Id);
-            }
+            deleteJob = _apiClient.GetCompletedJob(deleteJob.Id);
 
             Assert.AreEqual(1, deleteJob.NumberRecordsProcessed);
         }
 
+        /// <summary>
+        /// Tests attaching a file to the specified "AttachmentParentId" record.
+        /// </summary>
         [TestMethod]
         public void AttachFileTest()
         {
@@ -348,21 +309,29 @@ namespace SFBulkAPIStarterTest
 
             Assert.IsTrue(String.IsNullOrWhiteSpace(parentId) == false, "The AttachmentParentId app setting is blank. Please specify the id of a salesforce record to attach an attachment file.");
 
+            // Create Attachment Job
             CreateJobRequest attachmentJobRequest = buildDefaultAttachmentJobRequest();
             Job attachmentJob = _apiClient.CreateJob(attachmentJobRequest);
 
+            // Create file to attach to record
             String filename = "BulkAPIClientAttachment.txt";
-
             File.WriteAllText(filename, "Hello From Attach File Test");
 
+            // Create attachment batch request
             CreateAttachmentBatchRequest attachmentBatchRequest = new CreateAttachmentBatchRequest();
             attachmentBatchRequest.FilePath = filename;
             attachmentBatchRequest.JobId = attachmentJob.Id;
             attachmentBatchRequest.ParentId = parentId;
 
+            // Create attachment batch
             Batch attachmentBatch = _apiClient.CreateAttachmentBatch(attachmentBatchRequest);
 
+            // Close job so batch is processed.
             _apiClient.CloseJob(attachmentJob.Id);
+
+            attachmentJob = _apiClient.GetCompletedJob(attachmentJob.Id);
+
+            Assert.AreEqual(1, attachmentJob.NumberRecordsProcessed, "The file was not attached to the specified record.");
         }
 
         private CreateJobRequest buildDefaultAttachmentJobRequest()
