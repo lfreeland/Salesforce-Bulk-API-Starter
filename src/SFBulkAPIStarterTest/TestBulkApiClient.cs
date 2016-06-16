@@ -5,6 +5,7 @@ using SFBulkAPIStarter;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.IO;
 
 namespace SFBulkAPIStarterTest
 {
@@ -338,6 +339,41 @@ namespace SFBulkAPIStarterTest
             }
 
             Assert.AreEqual(1, deleteJob.NumberRecordsProcessed);
+        }
+
+        [TestMethod]
+        public void AttachFileTest()
+        {
+            String parentId = ConfigurationManager.AppSettings["AttachmentParentId"];
+
+            Assert.IsTrue(String.IsNullOrWhiteSpace(parentId) == false, "The AttachmentParentId app setting is blank. Please specify the id of a salesforce record to attach an attachment file.");
+
+            CreateJobRequest attachmentJobRequest = buildDefaultAttachmentJobRequest();
+            Job attachmentJob = _apiClient.CreateJob(attachmentJobRequest);
+
+            String filename = "BulkAPIClientAttachment.txt";
+
+            File.WriteAllText(filename, "Hello From Attach File Test");
+
+            CreateAttachmentBatchRequest attachmentBatchRequest = new CreateAttachmentBatchRequest();
+            attachmentBatchRequest.FilePath = filename;
+            attachmentBatchRequest.JobId = attachmentJob.Id;
+            attachmentBatchRequest.ParentId = parentId;
+
+            Batch attachmentBatch = _apiClient.CreateAttachmentBatch(attachmentBatchRequest);
+
+            _apiClient.CloseJob(attachmentJob.Id);
+        }
+
+        private CreateJobRequest buildDefaultAttachmentJobRequest()
+        {
+            CreateJobRequest jobRequest = new CreateJobRequest();
+
+            jobRequest.ContentType = JobContentType.ZIP_CSV;
+            jobRequest.Operation = JobOperation.Insert;
+            jobRequest.Object = "Attachment";
+
+            return jobRequest;
         }
 
         private CreateJobRequest buildDefaultDeleteAccountCreateJobRequest()

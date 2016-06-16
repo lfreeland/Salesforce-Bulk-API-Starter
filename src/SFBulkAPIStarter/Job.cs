@@ -132,6 +132,7 @@ namespace SFBulkAPIStarter
     public enum JobContentType
     {
         CSV,
-        XML
+        XML,
+        ZIP_CSV
     }
 }

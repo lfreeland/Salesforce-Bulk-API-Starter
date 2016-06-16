@@ -30,6 +30,13 @@ namespace SFBulkAPIStarter
         }
     }
 
+    public class CreateAttachmentBatchRequest : CreateBatchRequest
+    {
+        public String FilePath { get; set; }
+
+        public String ParentId { get; set; }
+    }
+
     public enum BatchContentType
     { 
         CSV,
