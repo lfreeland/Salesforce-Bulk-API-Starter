@@ -244,6 +244,9 @@ namespace SFBulkAPIStarterTest
         {
             // Upsert an account
             String externalFieldName = ConfigurationManager.AppSettings["ExternalFieldName"];
+
+            Assert.AreNotEqual("external_id_here_for_upsert_test", externalFieldName, "Please specify an external id account field.");
+
             CreateJobRequest jobRequest = buildDefaultUpsertAccountCreateJobRequest(externalFieldName);
 
             Job job = _apiClient.CreateJob(jobRequest);
