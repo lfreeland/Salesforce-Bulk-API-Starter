@@ -44,6 +44,8 @@ namespace SFBulkAPIStarter
                         return "CSV";
                     case JobContentType.XML:
                         return "XML";
+                    case JobContentType.ZIP_CSV:
+                        return "ZIP_CSV";
                     default:
                         return "XML";
                 }

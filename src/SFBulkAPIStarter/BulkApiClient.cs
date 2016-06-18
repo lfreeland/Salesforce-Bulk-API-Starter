@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -84,6 +86,57 @@ namespace SFBulkAPIStarter
             String resultXML = invokeRestAPI(getJobUrl);
 
             return Job.Create(resultXML);
+        }
+
+        public Job GetCompletedJob(String jobId)
+        {
+            Job job = GetJob(jobId);
+
+            while (job.IsDone == false)
+            {
+                Thread.Sleep(2000);
+                job = job = GetJob(jobId);
+            }
+
+            return job;
+        }
+
+        public Batch CreateAttachmentBatch(CreateAttachmentBatchRequest request)
+        {
+            String requestTxtFileCSVContents = "Name,ParentId,Body" + Environment.NewLine;
+            requestTxtFileCSVContents += request.FilePath + "," + request.ParentId + ",#" + request.FilePath;
+
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
+                    byte[] requestTxtFileCSVContentsBytes = UTF8Encoding.UTF8.GetBytes(requestTxtFileCSVContents);
+                    var requestTxtFileInArchive = archive.CreateEntry("request.txt");
+                    using (var entryStream = requestTxtFileInArchive.Open())
+                    using (var fileToCompressStream = new MemoryStream(requestTxtFileCSVContentsBytes))
+                    {
+                        fileToCompressStream.CopyTo(entryStream);
+                    }
+
+                    byte[] attachmentFileContentsBytes = File.ReadAllBytes(request.FilePath);
+                    var attachmentFileInArchive = archive.CreateEntry(request.FilePath);
+                    using (var attachmentEntryStream = attachmentFileInArchive.Open())
+                    using (var attachmentFileToCompressStream = new MemoryStream(attachmentFileContentsBytes))
+                    {
+                        attachmentFileToCompressStream.CopyTo(attachmentEntryStream);
+                    }
+
+                    byte[] zipFileBytes = memoryStream.ToArray();
+
+                    String requestUrl = "https://" + _sfService.Pod + ".salesforce.com/services/async/31.0/job/" + request.JobId + "/batch";
+
+                    byte[] responseBytes = invokeRestAPI(requestUrl, zipFileBytes, "POST", "zip/csv");
+
+                    String resultXML = UTF8Encoding.UTF8.GetString(responseBytes);
+
+                    return Batch.CreateBatch(resultXML);
+                }
+            }
         }
 
         public Batch CreateBatch(CreateBatchRequest createBatchRequest){
@@ -193,6 +246,15 @@ namespace SFBulkAPIStarter
 
         private String invokeRestAPI(String endpointURL, String postData, String httpVerb, String contentType)
         {
+            byte[] postDataBytes = UTF8Encoding.UTF8.GetBytes(postData);
+
+            byte[] response = invokeRestAPI(endpointURL, postDataBytes, httpVerb, contentType);
+
+            return UTF8Encoding.UTF8.GetString(response);
+        }
+
+        private byte[] invokeRestAPI(String endpointURL, byte[] postData, String httpVerb, String contentType)
+        {
             WebClient wc = buildWebClient();
 
             if (String.IsNullOrWhiteSpace(contentType) == false)
@@ -202,16 +264,18 @@ namespace SFBulkAPIStarter
 
             try
             {
-                return wc.UploadString(endpointURL, httpVerb, postData);
+                return wc.UploadData(endpointURL, httpVerb, postData);
             }
             catch (WebException webEx)
             {
                 String error = String.Empty;
 
-                if (webEx.Response != null){
+                if (webEx.Response != null)
+                {
                     using (var errorResponse = (HttpWebResponse)webEx.Response)
                     {
-                        using (var reader = new StreamReader(errorResponse.GetResponseStream())) {
+                        using (var reader = new StreamReader(errorResponse.GetResponseStream()))
+                        {
                             error = reader.ReadToEnd();
                         }
                     }
